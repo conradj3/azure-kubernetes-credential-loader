@@ -1,0 +1,22 @@
+{
+  "recommendations": [
+    "ms-python.python",
+    "ms-python.debugpy",
+    "ms-python.pylint",
+    "ms-python.black-formatter",
+    "ms-vscode.azure-account",
+    "ms-kubernetes-tools.vscode-kubernetes-tools",
+    "ms-azuretools.vscode-azurecli",
+    "github.copilot",
+    "github.copilot-chat",
+    "redhat.vscode-yaml",
+    "timonwong.shellcheck",
+    "ms-vscode.makefile-tools",
+    "ms-vscode-remote.remote-containers",
+    "github.codespaces"
+  ],
+  "unwantedRecommendations": [
+    "ms-python.flake8",
+    "ms-python.autopep8"
+  ]
+}

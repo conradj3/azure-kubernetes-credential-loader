@@ -1,0 +1,11 @@
+# Azure Kubernetes Credential Loader - Python Requirements
+# 
+# No additional Python packages required beyond the standard library.
+# The Python script uses only built-in modules.
+#
+# External dependencies (must be installed separately):
+# - Azure CLI (az): https://docs.microsoft.com/en-us/cli/azure/install-azure-cli
+# - kubelogin: https://github.com/Azure/kubelogin
+#
+# For the Bash version, also install:
+# - jq: brew install jq

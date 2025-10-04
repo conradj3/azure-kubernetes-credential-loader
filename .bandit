@@ -1,0 +1,14 @@
+---
+# Bandit security configuration for Azure Kubernetes Credential Loader
+exclude_dirs:
+  - '.vscode'
+  - '.devcontainer'
+  - '.github'
+  - '__pycache__'
+  - '.venv'
+
+# Skip these tests for legitimate subprocess usage
+skips:
+  - 'B404'  # import subprocess
+  - 'B603'  # subprocess without shell=True
+  - 'B607'  # partial executable path
