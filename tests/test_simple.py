@@ -1,4 +1,5 @@
 """Simple functionality tests for AKS Credential Loader."""
+
 # type: ignore
 # pylint: disable=import-error,unused-import
 

@@ -3,6 +3,7 @@
 This test suite focuses on core functionality with complete mocking
 to avoid any dependency on host system CLI tools.
 """
+
 # type: ignore
 # pylint: disable=import-error,unused-import,pointless-string-statement,missing-function-docstring
 # mypy: ignore-errors
@@ -40,13 +41,13 @@ class TestAKSCredentialLoaderCore:
             {
                 "id": "12345678-1234-1234-1234-123456789abc",
                 "name": "mock-subscription-01",
-                "state": "Enabled"
+                "state": "Enabled",
             },
             {
                 "id": "123e4567-e89b-12d3-a456-426614174000",
                 "name": "test-subscription",
-                "state": "Enabled"
-            }
+                "state": "Enabled",
+            },
         ]
 
     @pytest.fixture  # type: ignore
@@ -55,13 +56,9 @@ class TestAKSCredentialLoaderCore:
             {
                 "name": "mock-aks-cluster-01",
                 "resourceGroup": "mock-resource-group-01",
-                "location": "eastus"
+                "location": "eastus",
             },
-            {
-                "name": "test-cluster",
-                "resourceGroup": "test-rg",
-                "location": "westus2"
-            }
+            {"name": "test-cluster", "resourceGroup": "test-rg", "location": "westus2"},
         ]
 
     def test_loader_initialization(self) -> None:  # type: ignore
@@ -78,26 +75,28 @@ class TestAKSCredentialLoaderCore:
         assert loader.dry_run is False
         assert loader.verbose is False
 
-    @patch('subprocess.run')
+    @patch("subprocess.run")
     def test_run_az_command_dry_run(self, mock_subprocess: Any) -> None:  # type: ignore
         if AKSCredentialLoader is None:
             pytest.skip("AKSCredentialLoader not available")
-        loader = AKSCredentialLoader(dry_run=True, verbose=True)        # Test dry-run mode (should not execute)
-        result = loader.run_az_command(['account', 'list'])
+        loader = AKSCredentialLoader(
+            dry_run=True, verbose=True
+        )  # Test dry-run mode (should not execute)
+        result = loader.run_az_command(["account", "list"])
         assert result is None
         mock_subprocess.assert_not_called()
 
         # Test dry-run with allow_in_dry_run=True
         mock_result = Mock()
-        mock_result.stdout = '[]'
+        mock_result.stdout = "[]"
         mock_result.returncode = 0
         mock_subprocess.return_value = mock_result
 
-        result = loader.run_az_command(['account', 'list'], allow_in_dry_run=True)
+        result = loader.run_az_command(["account", "list"], allow_in_dry_run=True)
         mock_subprocess.assert_called_once()
         assert result == []
 
-    @patch('subprocess.run')
+    @patch("subprocess.run")
     def test_run_az_command_success(self, mock_subprocess: Any) -> None:  # type: ignore
         if AKSCredentialLoader is None:
             pytest.skip("AKSCredentialLoader not available")
@@ -109,12 +108,12 @@ class TestAKSCredentialLoaderCore:
         mock_result.returncode = 0
         mock_subprocess.return_value = mock_result
 
-        result = prod_loader.run_az_command(['account', 'list'])
+        result = prod_loader.run_az_command(["account", "list"])
 
         assert result == [{"id": "test", "name": "test"}]
         mock_subprocess.assert_called_once()
 
-    @patch('subprocess.run')
+    @patch("subprocess.run")
     def test_run_kubelogin_command_success(self, mock_subprocess: Any) -> None:  # type: ignore
         if AKSCredentialLoader is None:
             pytest.skip("AKSCredentialLoader not available")
@@ -125,84 +124,87 @@ class TestAKSCredentialLoaderCore:
         mock_result.returncode = 0
         mock_subprocess.return_value = mock_result
 
-        result = prod_loader.run_kubelogin_command(['convert-kubeconfig', '-l', 'azurecli'])
+        result = prod_loader.run_kubelogin_command(["convert-kubeconfig", "-l", "azurecli"])
 
         assert result is True
         mock_subprocess.assert_called_once()
 
     def test_get_subscriptions_with_mock(self, loader: Any, mock_subscriptions: Any) -> None:  # type: ignore
-        with patch.object(loader, 'run_az_command', return_value=mock_subscriptions):
+        with patch.object(loader, "run_az_command", return_value=mock_subscriptions):
             result = loader.get_subscriptions()
             assert len(result) == 2
-            assert result[0]['name'] == 'mock-subscription-01'
-            assert result[1]['name'] == 'test-subscription'
+            assert result[0]["name"] == "mock-subscription-01"
+            assert result[1]["name"] == "test-subscription"
 
     def test_get_subscriptions_with_filter(self, loader: Any, mock_subscriptions: Any) -> None:  # type: ignore
-        with patch.object(loader, 'run_az_command', return_value=mock_subscriptions):
+        with patch.object(loader, "run_az_command", return_value=mock_subscriptions):
             # Test filtering by ID
-            result = loader.get_subscriptions(['12345678-1234-1234-1234-123456789abc'])
+            result = loader.get_subscriptions(["12345678-1234-1234-1234-123456789abc"])
             assert len(result) == 1
-            assert result[0]['name'] == 'mock-subscription-01'
+            assert result[0]["name"] == "mock-subscription-01"
 
             # Test filtering by name
-            result = loader.get_subscriptions(['test-subscription'])
+            result = loader.get_subscriptions(["test-subscription"])
             assert len(result) == 1
-            assert result[0]['name'] == 'test-subscription'
+            assert result[0]["name"] == "test-subscription"
 
             # Test no matches
-            result = loader.get_subscriptions(['nonexistent'])
+            result = loader.get_subscriptions(["nonexistent"])
             assert len(result) == 0
 
     def test_get_aks_clusters_success(self, loader: Any, mock_clusters: Any) -> None:
         """Test AKS cluster retrieval"""
-        with patch.object(loader, 'run_az_command') as mock_run:
+        with patch.object(loader, "run_az_command") as mock_run:
             # Mock successful subscription set and cluster list
-            mock_run.side_effect = [True, mock_clusters]  # First call sets subscription, second lists clusters
+            mock_run.side_effect = [
+                True,
+                mock_clusters,
+            ]  # First call sets subscription, second lists clusters
 
-            result = loader.get_aks_clusters('test-subscription-id')
+            result = loader.get_aks_clusters("test-subscription-id")
             assert len(result) == 2
-            assert result[0]['name'] == 'mock-aks-cluster-01'
-            assert result[1]['name'] == 'test-cluster'
+            assert result[0]["name"] == "mock-aks-cluster-01"
+            assert result[1]["name"] == "test-cluster"
 
     def test_get_aks_clusters_no_clusters(self, loader: Any) -> None:
         """Test AKS cluster retrieval with no clusters"""
-        with patch.object(loader, 'run_az_command') as mock_run:
+        with patch.object(loader, "run_az_command") as mock_run:
             mock_run.side_effect = [True, []]  # Empty cluster list
 
-            result = loader.get_aks_clusters('test-subscription-id')
+            result = loader.get_aks_clusters("test-subscription-id")
             assert len(result) == 0
 
     def test_fetch_cluster_credentials_dry_run(self, loader: Any) -> None:
         """Test credential fetching in dry-run mode"""
-        cluster = {
-            'name': 'test-cluster',
-            'resourceGroup': 'test-rg'
-        }
+        cluster = {"name": "test-cluster", "resourceGroup": "test-rg"}
 
-        with patch.object(loader, 'run_az_command', return_value=True), \
-             patch.object(loader, 'run_kubelogin_command', return_value=True):
+        with patch.object(loader, "run_az_command", return_value=True), patch.object(
+            loader, "run_kubelogin_command", return_value=True
+        ):
 
-            result = loader.fetch_cluster_credentials('test-sub-id', cluster)
+            result = loader.fetch_cluster_credentials("test-sub-id", cluster)
             assert result is True
 
     def test_fetch_cluster_credentials_success(self, prod_loader: Any) -> None:
         """Test successful credential fetching"""
-        cluster = {
-            'name': 'test-cluster',
-            'resourceGroup': 'test-rg'
-        }
+        cluster = {"name": "test-cluster", "resourceGroup": "test-rg"}
 
-        with patch.object(prod_loader, 'run_az_command', return_value=True), \
-             patch.object(prod_loader, 'run_kubelogin_command', return_value=True):
+        with patch.object(prod_loader, "run_az_command", return_value=True), patch.object(
+            prod_loader, "run_kubelogin_command", return_value=True
+        ):
 
-            result = prod_loader.fetch_cluster_credentials('test-sub-id', cluster)
+            result = prod_loader.fetch_cluster_credentials("test-sub-id", cluster)
             assert result is True
 
-    def test_load_all_credentials_integration(self, loader: Any, mock_subscriptions: Any, mock_clusters: Any) -> None:
+    def test_load_all_credentials_integration(
+        self, loader: Any, mock_subscriptions: Any, mock_clusters: Any
+    ) -> None:
         """Test the full workflow integration"""
-        with patch.object(loader, 'get_subscriptions', return_value=mock_subscriptions), \
-             patch.object(loader, 'get_aks_clusters', return_value=mock_clusters), \
-             patch.object(loader, 'fetch_cluster_credentials', return_value=True):
+        with patch.object(
+            loader, "get_subscriptions", return_value=mock_subscriptions
+        ), patch.object(loader, "get_aks_clusters", return_value=mock_clusters), patch.object(
+            loader, "fetch_cluster_credentials", return_value=True
+        ):
 
             # This should run without errors
             loader.load_all_credentials()

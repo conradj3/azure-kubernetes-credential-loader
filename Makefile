@@ -83,29 +83,65 @@ test-coverage: ## Run tests with coverage report
 	@echo "✅ Coverage tests completed successfully"
 
 install-test: ## Install test dependencies
-	pip install -r requirements-test.txt
+	@echo "🔧 Setting up test environment..."
+	@python3 -m venv .venv 2>/dev/null || echo "Virtual environment already exists"
+	@.venv/bin/python -m pip install --quiet --upgrade pip
+	@.venv/bin/python -m pip install --quiet -r requirements-test.txt
+	@echo "✅ Test dependencies installed in .venv"
 
 format: ## Format code with black
-	@command -v black >/dev/null 2>&1 || { echo "❌ black not found. Install with: pip install black"; exit 1; }
-	black src/ tests/
+	@if [ -f .venv/bin/black ]; then \
+		.venv/bin/black src/ tests/; \
+	elif command -v black >/dev/null 2>&1; then \
+		black src/ tests/; \
+	else \
+		echo "❌ black not found. Install with: make install-test"; \
+		exit 1; \
+	fi
 
 format-check: ## Check code formatting with black (no changes)
-	@command -v black >/dev/null 2>&1 || { echo "❌ black not found. Install with: pip install black"; exit 1; }
-	black --check --diff src/ tests/
+	@if [ -f .venv/bin/black ]; then \
+		.venv/bin/black --check --diff src/ tests/; \
+	elif command -v black >/dev/null 2>&1; then \
+		black --check --diff src/ tests/; \
+	else \
+		echo "❌ black not found. Install with: make install-test"; \
+		exit 1; \
+	fi
 
 lint: ## Run pylint on source code
-	@command -v pylint >/dev/null 2>&1 || { echo "❌ pylint not found. Install with: pip install pylint"; exit 1; }
-	pylint src/aks_credential_loader.py --disable=C0114,C0116,R0903
+	@if [ -f .venv/bin/pylint ]; then \
+		.venv/bin/pylint src/aks_credential_loader.py --disable=C0114,C0116,R0903; \
+	elif command -v pylint >/dev/null 2>&1; then \
+		pylint src/aks_credential_loader.py --disable=C0114,C0116,R0903; \
+	else \
+		echo "❌ pylint not found. Install with: make install-test"; \
+		exit 1; \
+	fi
 
 type-check: ## Run mypy type checking
-	@command -v mypy >/dev/null 2>&1 || { echo "❌ mypy not found. Install with: pip install mypy"; exit 1; }
-	mypy src/aks_credential_loader.py --ignore-missing-imports || echo "Type checking completed with warnings"
+	@if [ -f .venv/bin/mypy ]; then \
+		.venv/bin/mypy src/aks_credential_loader.py --ignore-missing-imports || echo "Type checking completed with warnings"; \
+	elif command -v mypy >/dev/null 2>&1; then \
+		mypy src/aks_credential_loader.py --ignore-missing-imports || echo "Type checking completed with warnings"; \
+	else \
+		echo "❌ mypy not found. Install with: make install-test"; \
+		exit 1; \
+	fi
 
 security-scan: ## Run bandit security scan
-	@command -v bandit >/dev/null 2>&1 || { echo "❌ bandit not found. Install with: pip install bandit"; exit 1; }
-	@echo "🔒 Running bandit security scan..."
-	@bandit -r src/ -f txt --severity-level medium
-	@echo "✅ Security scan passed - no medium/high severity issues found"
+	@if [ -f .venv/bin/bandit ]; then \
+		echo "🔒 Running bandit security scan..."; \
+		.venv/bin/bandit -r src/ -f txt --severity-level medium; \
+		echo "✅ Security scan passed - no medium/high severity issues found"; \
+	elif command -v bandit >/dev/null 2>&1; then \
+		echo "🔒 Running bandit security scan..."; \
+		bandit -r src/ -f txt --severity-level medium; \
+		echo "✅ Security scan passed - no medium/high severity issues found"; \
+	else \
+		echo "❌ bandit not found. Install with: make install-test"; \
+		exit 1; \
+	fi
 
 shell-check: ## Validate shell script with shellcheck
 	@command -v shellcheck >/dev/null 2>&1 || { echo "❌ shellcheck not found. Install with: brew install shellcheck"; exit 1; }
@@ -113,14 +149,14 @@ shell-check: ## Validate shell script with shellcheck
 
 validate: ## Run all validation checks (format, lint, type-check, security)
 	@echo "🔍 Running all validation checks..."
-	@make format
+	@echo "Installing dependencies if needed..."
+	@make install-test
+	@make format-check
 	@make lint
 	@make type-check
 	@make security-scan
 	@make shell-check
-	@echo "✅ All validation checks completed"
-
-clean: ## Clean up any temporary files
+	@echo "✅ All validation checks completed"clean: ## Clean up any temporary files
 	@echo "Cleaning up..."
 	@find . -name "*.pyc" -delete
 	@find . -name "__pycache__" -type d -exec rm -rf {} + 2>/dev/null || true
