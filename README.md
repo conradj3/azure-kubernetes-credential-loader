@@ -162,7 +162,8 @@ For each AKS cluster discovered, the tool executes these three commands:
 🔍 Finding your Azure subscriptions...
 📋 Found 26 subscription(s)
    • mock-subscription-01
-   • prod-sub
+   • mock-subsription-02
+   ..
 
 ============================================================
 🏢 mock-subscription-01
@@ -170,7 +171,8 @@ For each AKS cluster discovered, the tool executes these three commands:
 🔎 Looking for AKS clusters...
 🎯 Found 2 cluster(s):
      mock-aks-cluster-01
-     e-n-shr-aks-01
+     mock-aks-cluster-02
+     ..
 
 🔑 Getting credentials for: mock-aks-cluster-01
 ✅ Ready: mock-aks-cluster-01
