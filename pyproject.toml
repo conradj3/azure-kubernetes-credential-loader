@@ -38,13 +38,13 @@ test = [
     "pytest>=7.0.0",
     "pytest-mock>=3.10.0",
     "pytest-cov>=4.0.0",
-    "types-mock>=5.0.0",
+    "types-mock>=5.2.0.20250924",
 ]
 dev = [
     "pytest>=7.0.0",
     "pytest-mock>=3.10.0",
     "pytest-cov>=4.0.0",
-    "types-mock>=5.0.0",
+    "types-mock>=5.2.0.20250924",
     "black>=23.0.0",
     "pylint>=2.17.0",
     "mypy>=1.0.0",
